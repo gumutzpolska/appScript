@@ -1,0 +1,13 @@
+// copying and pasting range of data (last row method)
+
+function copyingRangeWithLastRow() {
+
+  var sourceSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+  var targetSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+
+  var sourceData = sourceSheet.getRange(1,1,sourceSheet.getLastRow(),sourceSheet.getLastColumn()).getValues();
+  var targetRange = targetSheet.getRange(1,1,sourceData.length,sourceData[0].length);
+
+  targetRange.setValues(sourceData);
+
+}
