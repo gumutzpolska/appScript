@@ -2,8 +2,8 @@
 
 function copyingSpecificColumnsAndRowsData() {
 
-var sourceSheet = SpreadsheetApp.openById("1ZhERaOlcr-W5AUltc5IPJluzNkjZlqZFmDGYDq3wdeA").getSheetByName("Sheet1");
-var targetSheet = SpreadsheetApp.openById("1w_700TE-FKb3HaYZYHIUzYAM4HWXLGW8gumgvSYhkVc").getSheetByName("Sheet1");
+var sourceSheet = SpreadsheetApp.openById("xxx").getSheetByName("xxx");
+var targetSheet = SpreadsheetApp.openById("xxx").getSheetByName("xxx");
 
 var sourceData = sourceSheet.getDataRange().getValues();
 
