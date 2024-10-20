@@ -1,0 +1,13 @@
+// copying and pasting fixed-range data
+
+function copyingDefinedRange() {
+
+  var sourceSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+  var targetSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+
+  var sourceRange = sourceSheet.getRange("A1:C28").getValues();
+  var targetRange = targetSheet.getRange("A1:C28");
+
+  targetRange.setValues(sourceRange);
+ 
+}
