@@ -1,0 +1,24 @@
+// copying and pasting specific columns of Data
+
+function copyingSpecificColumnsData() {
+
+  var sourceSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+  var targetSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+
+  var columnsToCopy = [0,3,2,6];    // Example of columns to copy, we can manipulate the order of columns
+  var filteredData = [];
+
+  for (var i = 0; i < sourceData.length; i++) {
+    var row = [];
+    for (var j = 0; j < sourceData.length; j++) {
+      row.push(sourceData[i][columnsToCopy[j]]);
+    }
+  filteredData.push(row)
+  }
+
+  var targetRange = targetSheet.getRange(1,1,filteredData.length,filteredData[0].length);
+  targetRange.setValues(filteredData);
+
+}
