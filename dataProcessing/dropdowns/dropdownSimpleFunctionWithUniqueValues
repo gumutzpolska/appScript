@@ -1,0 +1,24 @@
+// Dropdown Simple Function with Unique Values
+
+function dropdownValidation() {
+  var sourceData =  SpreadsheetApp.openById("XXX")
+                                 .getSheetByName("XXX")
+                                 .getRange("XXX")
+                                 .getValues();
+  
+  var targetSheet = SpreadsheetApp.openById("XXX")
+                                  .getSheetByName("XXX");
+
+  // Flatten the array and filter out empty strings
+  var valuesForDropdown = sourceData.flat().filter(String);
+  
+  // Convert to a Set to ensure unique values and then back to an array
+  var uniqueValues = [...new Set(valuesForDropdown)];
+
+  // Create a data validation rule with the unique values
+  var rule = SpreadsheetApp.newDataValidation().requireValueInList(uniqueValues, true).build();
+
+  // Apply the rule to the target range
+  var targetDropdownRange = targetSheet.getRange(1, 3, uniqueValues.length, 1);
+  targetDropdownRange.setDataValidation(rule);
+}
