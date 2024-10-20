@@ -1,0 +1,96 @@
+Copying and Pasting Specific Columns and Rages of Data Dynamic UI Defined Ranges
+
+function copyingSpecificRowsAndColumnsWithTargetRowInputBox() {
+ 
+  // Get the spreadsheet UI
+  var ui = SpreadsheetApp.getUi();
+ 
+  // Prompt user to enter the start row number
+  var startRowResponse = ui.prompt('Enter the start row number:');
+ 
+  // Check if user clicked "OK" and the input is valid
+  if (startRowResponse.getSelectedButton() != ui.Button.OK) {
+    ui.alert('Operation canceled.');
+    return;
+  }
+  var startRow = parseInt(startRowResponse.getResponseText());
+ 
+  // Check if input is a valid number
+  if (isNaN(startRow) || startRow < 1) {
+    ui.alert('Invalid input for start row. Please enter a positive number.');
+    return;
+  }
+ 
+  // Prompt user to enter the end row number
+  var endRowResponse = ui.prompt('Enter the end row number:');
+ 
+  // Check if user clicked "OK" and the input is valid
+  if (endRowResponse.getSelectedButton() != ui.Button.OK) {
+    ui.alert('Operation canceled.');
+    return;
+  }
+  var endRow = parseInt(endRowResponse.getResponseText());
+ 
+  // Check if input is a valid number and greater than startRow
+  if (isNaN(endRow) || endRow < startRow) {
+    ui.alert('Invalid input for end row. Please enter a number greater than or equal to the start row.');
+    return;
+  }
+
+  // Prompt user to enter the target row number
+  var targetRowResponse = ui.prompt('Enter the target start row number in the target sheet:');
+
+  // Check if user clicked "OK" and the input is valid
+  if (targetRowResponse.getSelectedButton() != ui.Button.OK) {
+    ui.alert('Operation canceled.');
+    return;
+  }
+  var targetRow = parseInt(targetRowResponse.getResponseText());
+
+  // Check if the target row input is valid
+  if (isNaN(targetRow) || targetRow < 1) {
+    ui.alert('Invalid input for target row. Please enter a positive number.');
+    return;
+  }
+
+  // Get source and target sheets by their IDs and names
+  var sourceSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+  var targetSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+
+  // Get all data from the source sheet
+  var sourceData = sourceSheet.getDataRange().getValues();
+
+  // Define the indices of the columns we want to copy (0-based index)
+  var columnsToCopy = [0, 2, 3, 7]; // Column A = 0, C = 2, D = 3, H = 7
+
+  // Create an array to hold the filtered data
+  var filteredData = [];
+
+  // Loop through each row, from startRow to endRow (adjusting for zero-based index)
+  for (var i = startRow - 1; i < endRow; i++) {
+    var row = [];
+    // Loop through each of the columns we want to copy and add to the row
+    for (var j = 0; j < columnsToCopy.length; j++) {
+      row.push(sourceData[i][columnsToCopy[j]]);
+    }
+    // Add the filtered row to the filteredData array
+    filteredData.push(row);
+  }
+
+  // Define the range in the target sheet to match the size of the filtered data, starting from the user-defined target row
+  var targetRange = targetSheet.getRange(targetRow, 1, filteredData.length, filteredData[0].length);
+
+  // Check if the target range already contains data
+  var existingData = targetRange.getValues();
+  for (var i = 0; i < existingData.length; i++) {
+    for (var j = 0; j < existingData[i].length; j++) {
+      if (existingData[i][j] !== "") {
+        ui.alert('Operation canceled. The target range already contains data.');
+        return;
+      }
+    }
+  }
+
+  // Copy the filtered data from source to target
+  targetRange.setValues(filteredData);
+}
