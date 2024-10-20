@@ -1,0 +1,13 @@
+// Copying and Pasting Full Range of Data
+
+function copyingFullRangeofData() {
+
+  var sourceSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+  var targetSheet = SpreadsheetApp.openById("XXX").getSheetByName("XXX");
+
+  var sourceData = sourceSheet.getDataRange().getValues();
+  var targetRange = targetSheet.getRange(1,1,sourceData.length,sourceData[0].length);
+
+  targetRange.setValues(sourceData);
+
+}
