@@ -1,4 +1,4 @@
-Copying and Pasting Specific Columns and Rages of Data Dynamic UI Defined Ranges
+// copying and pasting specific columns and ranges of data dynamic UI defined ranges
 
 function copyingSpecificRowsAndColumnsWithTargetRowInputBox() {
  
