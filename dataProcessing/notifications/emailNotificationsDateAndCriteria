@@ -29,7 +29,7 @@ function sendDeadlineNotifications() {
             if (deadlineDate <= oneMonthAgo) {
                 // Sends email if deadlineDate is on or before one month ago
                 MailApp.sendEmail({
-                    to: "tomekgut@gmail.com",
+                    to: "XXX", // update the email
                     subject: "Deadline Alert",
                     body: `The item in row ${i + 1} with a deadline of ${deadlineDate.toLocaleDateString()} requires your attention.`
                 });
