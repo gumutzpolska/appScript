@@ -1,0 +1,40 @@
+function sendDeadlineNotifications() {
+    
+    // Step 1: Access the spreadsheet and active sheet
+    
+    const sheet = SpreadsheetApp.openById('XXX').getSheetByName('XXX'); // Update spreadsheet information
+    const data = sheet.getDataRange().getValues(); // Fetch all data at once for efficiency
+    
+    // Step 2: Loop through rows, starting from the second row (if the first row is a header)
+    
+    for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const deadlineDate = new Date(row[4]); // Column E (index 4), change depending on your sheet
+        const rankingValue = row[5];           // Column F (index 5), change depending on your sheet
+        const rowType = row[9];                // Column J (index 9), change depending on your sheet
+        
+        // Log row details to verify that the row is being processed and values are correct
+        Logger.log(`Row ${i + 1}: Type = ${rowType}, Deadline Date = ${deadlineDate}, Ranking Value = ${rankingValue}`);
+        
+        
+        // Step 3: Check if the type is 'ranking', rankingValue is 0 or missing, and if the deadline is one month or more ago
+        if (rowType === 'ranking' && (!rankingValue || rankingValue === 0)) {
+            const today = new Date();
+            
+            // Calculate if deadlineDate is at least one month ago
+            const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+            
+            Logger.log(`Comparison Date (1 month ago) = ${oneMonthAgo}`);
+            
+            if (deadlineDate <= oneMonthAgo) {
+                // Sends email if deadlineDate is on or before one month ago
+                MailApp.sendEmail({
+                    to: "tomekgut@gmail.com",
+                    subject: "Deadline Alert",
+                    body: `The item in row ${i + 1} with a deadline of ${deadlineDate.toLocaleDateString()} requires your attention.`
+                });
+                Logger.log(`Email sent for row ${i + 1}`);
+            }
+        }
+    }
+}
