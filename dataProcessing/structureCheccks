@@ -5,8 +5,8 @@ function runFolderCheckWithFormatting() {
 }
 
 function applyFormatting() {
-  const spreadsheetId = "YOUR_SPREADSHEET_ID"; // Replace with actual Spreadsheet ID
-  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const spreadsheetId = "1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM"; // Replace with actual Spreadsheet ID
+  const spreadsheet = SpreadsheetApp.openById("1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM");
 
   // Format first sheet (folder structure)
   formatSheet(spreadsheet.getSheets()[0]);
@@ -33,9 +33,10 @@ function formatSheet(sheet) {
   }
 }
 
+
 function checkFolderStructure() {
-  const spreadsheetId = "YOUR_SPREADSHEET_ID";
-  const spreadsheetFile = DriveApp.getFileById(spreadsheetId);
+  const spreadsheetId = "YOUR_SPRE1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpMDSHEET_ID";
+  const spreadsheetFile = DriveApp.getFileById("1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM");
   const parentFolder = spreadsheetFile.getParents().next();
 
   const ui = SpreadsheetApp.getUi();
@@ -54,6 +55,8 @@ function checkFolderStructure() {
   }
 
   const subfolders = folderY.getFolders();
+  const files = folderY.getFiles(); // Get files in the main folder
+
   const expectedStructure = {
     "pdfs": ["pdf"],
     "editorial": ["docx", "rtf"],
@@ -62,17 +65,33 @@ function checkFolderStructure() {
 
   const dynamicFolders = {
     "-Cover": ["indd"],
-    "-Internals": ["indd"]
+    "-Internals": ["indd", "idml"],
   };
 
   const issues = [];
   const requiredFolders = new Set(Object.keys(expectedStructure));
   let foundDynamicFolders = { "-Cover": false, "-Internals": false };
+  let rootTxtFound = false;
 
+  // 🔍 Check if "root.txt" is in the main folder
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName();
+    if (fileName.toLowerCase() === "root.txt") {
+      rootTxtFound = true;
+    }
+  }
+
+  // ❌ Log if "root.txt" is missing
+  if (!rootTxtFound) {
+    issues.push([`Missing file: root.txt should be in the main folder!`]);
+  }
+
+  // 🔄 Scan through subfolders
   while (subfolders.hasNext()) {
     const subfolder = subfolders.next();
     const folderName = subfolder.getName();
-    const files = subfolder.getFiles();
+    const subfolderFiles = subfolder.getFiles();
     let allowedExtensions = null;
     let fileCount = 0;
 
@@ -94,11 +113,16 @@ function checkFolderStructure() {
       continue;
     }
 
-    while (files.hasNext()) {
-      const file = files.next();
-      fileCount++;
+    while (subfolderFiles.hasNext()) {
+      const file = subfolderFiles.next();
       const fileName = file.getName();
       const extension = fileName.split('.').pop().toLowerCase();
+
+      if (fileName.toLowerCase() === "root.txt") {
+        issues.push([`Invalid location: root.txt should be in the main folder, not inside "${folderName}"`]);
+      }
+
+      fileCount++;
 
       if (!allowedExtensions.includes(extension)) {
         issues.push([`Invalid file in ${folderName}: ${fileName} (Allowed: ${allowedExtensions.join(", ")})`]);
@@ -123,9 +147,10 @@ function checkFolderStructure() {
   logIssuesToSheet(spreadsheetId, issues, `Folder Check: ${folderYName}`, 0);
 }
 
+
 function checkNamingConvention() {
-  const spreadsheetId = "YOUR_SPREADSHEET_ID";
-  const spreadsheetFile = DriveApp.getFileById(spreadsheetId);
+  const spreadsheetId = "1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM";
+  const spreadsheetFile = DriveApp.getFileById("1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM");
   const parentFolder = spreadsheetFile.getParents().next();
 
   const ui = SpreadsheetApp.getUi();
@@ -190,7 +215,7 @@ function findFolderByNameInParent(folderName, parentFolder) {
 }
 
 function logIssuesToSheet(spreadsheetId, issues, sheetTitle, sheetIndex) {
-  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const spreadsheet = SpreadsheetApp.openById("1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM");
   let sheets = spreadsheet.getSheets();
 
   let sheet;
@@ -210,4 +235,3 @@ function logIssuesToSheet(spreadsheetId, issues, sheetTitle, sheetIndex) {
     sheet.appendRow(["No issues found! 🎉"]);
   }
 }
-
