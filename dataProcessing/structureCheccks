@@ -1,1 +1,213 @@
+function runFolderCheckWithFormatting() {
+  checkFolderStructure(); // Run folder structure check
+  checkNamingConvention(); // Run naming convention check
+  applyFormatting(); // Apply formatting afterward
+}
+
+function applyFormatting() {
+  const spreadsheetId = "YOUR_SPREADSHEET_ID"; // Replace with actual Spreadsheet ID
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+
+  // Format first sheet (folder structure)
+  formatSheet(spreadsheet.getSheets()[0]);
+
+  // Format second sheet (naming issues) if it exists
+  const sheets = spreadsheet.getSheets();
+  if (sheets.length > 1) {
+    formatSheet(sheets[1]);
+  }
+}
+
+function formatSheet(sheet) {
+  const headerRange = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+  headerRange.setFontWeight("bold").setBackground("#f4b084"); // Orange header
+  
+  // Auto-size columns
+  sheet.autoResizeColumns(1, sheet.getLastColumn());
+
+  // Format issue rows
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    const issueRange = sheet.getRange(2, 1, lastRow - 1, 1);
+    issueRange.setFontColor("red");
+  }
+}
+
+function checkFolderStructure() {
+  const spreadsheetId = "YOUR_SPREADSHEET_ID";
+  const spreadsheetFile = DriveApp.getFileById(spreadsheetId);
+  const parentFolder = spreadsheetFile.getParents().next();
+
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt("Enter the folder name to check:");
+  const folderYName = response.getResponseText().trim();
+
+  if (!folderYName) {
+    ui.alert("No folder name provided. Script canceled.");
+    return;
+  }
+
+  const folderY = findFolderByNameInParent(folderYName, parentFolder);
+  if (!folderY) {
+    ui.alert(`Folder "${folderYName}" not found in the same location as the spreadsheet.`);
+    return;
+  }
+
+  const subfolders = folderY.getFolders();
+  const expectedStructure = {
+    "pdfs": ["pdf"],
+    "editorial": ["docx", "rtf"],
+    "lo-res preview": ["pdf"],
+  };
+
+  const dynamicFolders = {
+    "-Cover": ["indd"],
+    "-Internals": ["indd"]
+  };
+
+  const issues = [];
+  const requiredFolders = new Set(Object.keys(expectedStructure));
+  let foundDynamicFolders = { "-Cover": false, "-Internals": false };
+
+  while (subfolders.hasNext()) {
+    const subfolder = subfolders.next();
+    const folderName = subfolder.getName();
+    const files = subfolder.getFiles();
+    let allowedExtensions = null;
+    let fileCount = 0;
+
+    if (expectedStructure[folderName]) {
+      allowedExtensions = expectedStructure[folderName];
+      requiredFolders.delete(folderName);
+    } else {
+      for (const key in dynamicFolders) {
+        if (folderName.endsWith(key)) {
+          allowedExtensions = dynamicFolders[key];
+          foundDynamicFolders[key] = true;
+          break;
+        }
+      }
+    }
+
+    if (!allowedExtensions) {
+      issues.push([`Unexpected folder: ${folderName}`]);
+      continue;
+    }
+
+    while (files.hasNext()) {
+      const file = files.next();
+      fileCount++;
+      const fileName = file.getName();
+      const extension = fileName.split('.').pop().toLowerCase();
+
+      if (!allowedExtensions.includes(extension)) {
+        issues.push([`Invalid file in ${folderName}: ${fileName} (Allowed: ${allowedExtensions.join(", ")})`]);
+      }
+    }
+
+    if ((folderName === "pdfs" || folderName === "editorial") && fileCount === 0) {
+      issues.push([`Error: Folder "${folderName}" is empty!`]);
+    }
+  }
+
+  requiredFolders.forEach(folder => {
+    issues.push([`Missing folder: ${folder}`]);
+  });
+
+  for (const key in dynamicFolders) {
+    if (!foundDynamicFolders[key]) {
+      issues.push([`Missing folder: A folder ending with "${key}" was not found!`]);
+    }
+  }
+
+  logIssuesToSheet(spreadsheetId, issues, `Folder Check: ${folderYName}`, 0);
+}
+
+function checkNamingConvention() {
+  const spreadsheetId = "YOUR_SPREADSHEET_ID";
+  const spreadsheetFile = DriveApp.getFileById(spreadsheetId);
+  const parentFolder = spreadsheetFile.getParents().next();
+
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt("Enter the folder name to check for naming issues:");
+  const folderYName = response.getResponseText().trim();
+
+  if (!folderYName) {
+    ui.alert("No folder name provided. Script canceled.");
+    return;
+  }
+
+  const folderY = findFolderByNameInParent(folderYName, parentFolder);
+  if (!folderY) {
+    ui.alert(`Folder "${folderYName}" not found in the same location as the spreadsheet.`);
+    return;
+  }
+
+  const issues = [];
+
+  checkNamingIssuesInFolder(folderY, issues);
+
+  logIssuesToSheet(spreadsheetId, issues, `Naming Issues: ${folderYName}`, 1);
+}
+
+function checkNamingIssuesInFolder(folder, issues) {
+  const folderName = folder.getName().trim();
+  if (hasInvalidCharacters(folderName)) {
+    issues.push([`Invalid folder name: "${folderName}"`]);
+  }
+
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    const fileName = file.getName().normalize("NFC").trim(); // Normalize Unicode
+
+    Logger.log(`Checking file: ${fileName}`);
+
+    if (hasInvalidCharacters(fileName)) {
+      issues.push([`Invalid file name: "${fileName}" in folder "${folderName}"`]);
+    }
+  }
+
+  const subfolders = folder.getFolders();
+  while (subfolders.hasNext()) {
+    checkNamingIssuesInFolder(subfolders.next(), issues);
+  }
+}
+
+function hasInvalidCharacters(name) {
+  return /[&% ]/.test(name.normalize("NFC")); // Normalize for better detection
+}
+
+function findFolderByNameInParent(folderName, parentFolder) {
+  const folders = parentFolder.getFolders();
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    if (folder.getName() === folderName) {
+      return folder;
+    }
+  }
+  return null;
+}
+
+function logIssuesToSheet(spreadsheetId, issues, sheetTitle, sheetIndex) {
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  let sheets = spreadsheet.getSheets();
+
+  let sheet;
+  if (sheets.length > sheetIndex) {
+    sheet = sheets[sheetIndex];
+  } else {
+    sheet = spreadsheet.insertSheet();
+  }
+
+  sheet.setName(sheetTitle);
+  sheet.clear();
+
+  sheet.appendRow(["Issues Found"]);
+  if (issues.length > 0) {
+    sheet.getRange(2, 1, issues.length, 1).setValues(issues);
+  } else {
+    sheet.appendRow(["No issues found! 🎉"]);
+  }
+}
 
