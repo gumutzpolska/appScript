@@ -33,10 +33,9 @@ function formatSheet(sheet) {
   }
 }
 
-
 function checkFolderStructure() {
-  const spreadsheetId = "YOUR_SPRE1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpMDSHEET_ID";
-  const spreadsheetFile = DriveApp.getFileById("1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM");
+  const spreadsheetId = "1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM";
+  const spreadsheetFile = DriveApp.getFileById(spreadsheetId);
   const parentFolder = spreadsheetFile.getParents().next();
 
   const ui = SpreadsheetApp.getUi();
@@ -129,15 +128,18 @@ function checkFolderStructure() {
       }
     }
 
-    if ((folderName === "pdfs" || folderName === "editorial") && fileCount === 0) {
+    // ✅ Log empty folders
+    if (fileCount === 0) {
       issues.push([`Error: Folder "${folderName}" is empty!`]);
     }
   }
 
+  // 🚨 Log missing required folders
   requiredFolders.forEach(folder => {
     issues.push([`Missing folder: ${folder}`]);
   });
 
+  // 🚨 Log missing dynamic folders
   for (const key in dynamicFolders) {
     if (!foundDynamicFolders[key]) {
       issues.push([`Missing folder: A folder ending with "${key}" was not found!`]);
@@ -146,7 +148,6 @@ function checkFolderStructure() {
 
   logIssuesToSheet(spreadsheetId, issues, `Folder Check: ${folderYName}`, 0);
 }
-
 
 function checkNamingConvention() {
   const spreadsheetId = "1-9QeN7ASIm4G1eheAeAJUIGTwhL7leZL5oJNhwR4NpM";
