@@ -1,1 +1,45 @@
+function listDriveFolders() {
+  var sheetId = "YOUR_SPREADSHEET_ID_HERE";  // Replace with your Google Sheet ID
+  var rootFolderId = "YOUR_ROOT_FOLDER_ID_HERE"; // Replace with your "Rep" folder ID
+
+  var spreadsheet = SpreadsheetApp.openById(sheetId);
+
+  // Generate date-based sheet name
+  var today = new Date();
+  var dateString = today.getFullYear() + "-" + (today.getMonth() + 1).toString().padStart(2, '0') + "-" + today.getDate().toString().padStart(2, '0');
+  var sheetName = "Folder Report (" + dateString + ")";
+
+  // Check if the sheet already exists; if not, create it
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(sheetName); // Create new report tab
+  }
+
+  // Set headers
+  sheet.getRange(1, 1, 1, 5).setValues([["LP", "Level 1", "Level 2", "Level 3", "Level 4"]]);
+
+  var rootFolder = DriveApp.getFolderById(rootFolderId);
+  var lpCounter = { value: 1 }; // LP counter stored in an object
+
+  processFolders(rootFolder, [], sheet, lpCounter);
+}
+
+function processFolders(folder, pathArray, sheet, lpCounter) {
+  var subfolders = folder.getFolders();
+
+  while (subfolders.hasNext()) {
+    var subfolder = subfolders.next();
+    var subfolderName = subfolder.getName();
+    var newPath = pathArray.concat(subfolderName); // Add folder to path
+
+    if (newPath.length <= 4) { // Only list up to 4 levels
+      sheet.appendRow([lpCounter.value].concat(newPath));
+      lpCounter.value++; // Increment LP number
+    }
+
+    if (newPath.length < 4) {
+      processFolders(subfolder, newPath, sheet, lpCounter); // Recursively go deeper
+    }
+  }
+}
 
