@@ -1,0 +1,90 @@
+function listDriveFolders() {
+  var sheetId = "1j48XdUEWnX4uouyLb1gPlwjnl02FP8zfMHwr8nNCiDg";  // Replace with your Google Sheet ID
+  var rootFolderId = "13mR7VJ9MPejaRhTdzWyEfKXoqwhK0A35"; // Replace with your "Rep" folder ID
+
+  var spreadsheet = SpreadsheetApp.openById(sheetId);
+
+  // Generate date-based sheet name
+  var today = new Date();
+  var dateString = today.getFullYear() + "-" + (today.getMonth() + 1).toString().padStart(2, '0') + "-" + today.getDate().toString().padStart(2, '0');
+  var sheetName = "Folder Report (" + dateString + ")";
+
+  // Check if the sheet already exists; if not, create it
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(sheetName); // Create new report tab
+  }
+
+  // Set headers
+  sheet.getRange(1, 1, 1, 8).setValues([["LP", "Level 1", "Level 2", "Level 3", "Level 4", "Date of Creation", "Creator", "Size"]]);
+
+  var rootFolder = DriveApp.getFolderById(rootFolderId);
+  var lpCounter = { value: 1 }; // LP counter stored in an object
+
+  processFolders(rootFolder, [], sheet, lpCounter);
+}
+
+function processFolders(folder, pathArray, sheet, lpCounter) {
+  var subfolders = folder.getFolders();
+
+  while (subfolders.hasNext()) {
+    var subfolder = subfolders.next();
+    var subfolderName = subfolder.getName();
+    var newPath = pathArray.concat(subfolderName); // Add folder to path
+
+    if (newPath.length === 4) { // Only list up to Level 4 (Editions)
+      var createdDate = formatDate(subfolder.getDateCreated()); // Get formatted date
+      var owner = getOwnerName(subfolder); // Get owner name safely
+      var folderSize = (getTotalFolderSize(subfolder) / (1024 * 1024)).toFixed(2) + " MB"; // Get size in MB
+
+      sheet.appendRow([lpCounter.value].concat(newPath, createdDate, owner, folderSize));
+      lpCounter.value++; // Increment LP number
+    } else {
+      // Levels 1-3: Only store folder names, no metadata
+      sheet.appendRow([lpCounter.value].concat(newPath, "", "", "")); 
+      lpCounter.value++;
+      processFolders(subfolder, newPath, sheet, lpCounter); // Recursively go deeper
+    }
+  }
+}
+
+
+// Function to calculate total folder size (including subfolders)
+function getTotalFolderSize(folder) {
+  var totalSize = 0;
+
+  // Sum all file sizes in the current folder
+  var files = folder.getFiles();
+  while (files.hasNext()) {
+    var file = files.next();
+    totalSize += file.getSize();
+  }
+
+  // Recursively sum sizes of all subfolders
+  var subfolders = folder.getFolders();
+  while (subfolders.hasNext()) {
+    var subfolder = subfolders.next();
+    totalSize += getTotalFolderSize(subfolder);
+  }
+
+  return totalSize; // Returns size in bytes
+}
+
+// Function to safely get the owner’s name
+function getOwnerName(folder) {
+  try {
+    return folder.getOwner().getName(); // Get owner's name
+  } catch (e) {
+    return "Unknown"; // Handle errors (e.g., shared drive folders)
+  }
+}
+
+// Function to format date as "YYYY-MM-DD HH:MM"
+function formatDate(date) {
+  var year = date.getFullYear();
+  var month = (date.getMonth() + 1).toString().padStart(2, '0');
+  var day = date.getDate().toString().padStart(2, '0');
+  var hours = date.getHours().toString().padStart(2, '0');
+  var minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
