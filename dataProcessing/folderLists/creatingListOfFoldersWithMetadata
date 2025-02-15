@@ -1,6 +1,6 @@
 function listDriveFolders() {
-  var sheetId = "1j48XdUEWnX4uouyLb1gPlwjnl02FP8zfMHwr8nNCiDg";  // Replace with your Google Sheet ID
-  var rootFolderId = "13mR7VJ9MPejaRhTdzWyEfKXoqwhK0A35"; // Replace with your "Rep" folder ID
+  var sheetId = "spreadsheetName";  // Replace with your Google Sheet ID
+  var rootFolderId = "rootFolder"; // Replace with your "Rep" folder ID
 
   var spreadsheet = SpreadsheetApp.openById(sheetId);
 
