@@ -1,1 +1,36 @@
+function formatReport() {
+  var spreadsheet = SpreadsheetApp.openById("1j48XdUEWnX4uouyLb1gPlwjnl02FP8zfMHwr8nNCiDg");
+  var sheet = spreadsheet.getActiveSheet();
+  
+  var lastRow = sheet.getLastRow();
+  var lastColumn = sheet.getLastColumn();
 
+  var range = sheet.getDataRange(); // Selects only the used data range
+  
+  range.setFontFamily("Calibri");
+  range.setFontSize(9);
+
+  // Borders for the fullRange variable to target all cells
+  var lastRowBorder = sheet.getMaxRows();
+  var lastColumnBorder = sheet.getMaxColumns();
+  var fullRange = sheet.getRange(1,1,lastRowBorder,lastColumnBorder);
+  
+  fullRange.setBorder(true, true, true, true, true, true, "#f8f9fa", SpreadsheetApp.BorderStyle.DASHED);
+
+  // Alignments
+  if (lastColumn > 0) {
+    sheet.autoResizeColumns(1,lastColumn);
+  }
+
+  sheet.getRange(1,1,lastRow).setHorizontalAlignment("center");
+  sheet.getRange(1,3,lastRow).setHorizontalAlignment("center");
+  sheet.getRange(1,4,lastRow).setHorizontalAlignment("center");
+
+  // Headers
+  var headers = sheet.getRange(1,1,1,lastColumn);
+  headers.setBackground("#B4CDCD");
+  headers.setFontColor("#444444");
+  headers.setFontWeight("bold");
+
+
+}
