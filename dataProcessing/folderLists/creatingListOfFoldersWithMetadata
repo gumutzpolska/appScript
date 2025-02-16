@@ -1,6 +1,6 @@
 function listDriveFolders() {
-  var sheetId = "spreadsheetName";  // Replace with your Google Sheet ID
-  var rootFolderId = "rootFolder"; // Replace with your "Rep" folder ID
+  var sheetId = "Placeholder";  // Replace with your Google Sheet ID
+  var rootFolderId = "Placeholder"; // Replace with your "Rep" folder ID
 
   var spreadsheet = SpreadsheetApp.openById(sheetId);
 
@@ -16,7 +16,7 @@ function listDriveFolders() {
   }
 
   // Set headers
-  sheet.getRange(1, 1, 1, 8).setValues([["LP", "Level 1", "Level 2", "Level 3", "Level 4", "Date of Creation", "Creator", "Size"]]);
+  sheet.getRange(1, 1, 1, 10).setValues([["LP", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Date of Creation", "Creator", "Size","ID"]]);
 
   var rootFolder = DriveApp.getFolderById(rootFolderId);
   var lpCounter = { value: 1 }; // LP counter stored in an object
@@ -32,7 +32,7 @@ function processFolders(folder, pathArray, sheet, lpCounter) {
     var subfolderName = subfolder.getName();
     var newPath = pathArray.concat(subfolderName); // Add folder to path
 
-    if (newPath.length === 4) { // Only list up to Level 4 (Editions)
+    if (newPath.length === 5) { // Only list up to Level 5 (Editions)
       var createdDate = formatDate(subfolder.getDateCreated()); // Get formatted date
       var owner = getOwnerName(subfolder); // Get owner name safely
       var folderSize = (getTotalFolderSize(subfolder) / (1024 * 1024)).toFixed(2) + " MB"; // Get size in MB
@@ -40,7 +40,7 @@ function processFolders(folder, pathArray, sheet, lpCounter) {
       sheet.appendRow([lpCounter.value].concat(newPath, createdDate, owner, folderSize));
       lpCounter.value++; // Increment LP number
     } else {
-      // Levels 1-3: Only store folder names, no metadata
+      // Levels 1-4: Only store folder names, no metadata
       sheet.appendRow([lpCounter.value].concat(newPath, "", "", "")); 
       lpCounter.value++;
       processFolders(subfolder, newPath, sheet, lpCounter); // Recursively go deeper
