@@ -1,1 +1,42 @@
+function extractID() {
+  var spreadsheet = SpreadsheetApp.openById("1j48XdUEWnX4uouyLb1gPlwjnl02FP8zfMHwr8nNCiDg");
+  var sheet = spreadsheet.getActiveSheet();
+  var lastRow = sheet.getLastRow();
 
+  if (lastRow === 0) {
+    Logger.log("No data found in Column F.");
+    return;
+  }
+
+  var columnF = sheet.getRange(2, 6, lastRow, 1).getValues(); // Get all values
+  var output = [];
+
+  // 🔍 Define both regex patterns
+  var regex1 = /\b(ID-\d{2}-\d{3})\b/;  // Matches "ID-20-300"
+  var regex2 = /\b(ID-\d{2}[-]\d{3}[a-z]?)\b/; // Matches "ID-20-100e"
+
+  for (var i = 0; i < columnF.length; i++) {
+    var cellValue = columnF[i][0]; // Get value from Column F
+
+    if (cellValue) { // Skip blank cells
+      var match1 = cellValue.match(regex1);
+      var match2 = cellValue.match(regex2);
+
+      if (match1) {
+        output.push([match1[1]]); // Extract "ID-20-300"
+      } else if (match2) {
+        output.push([match2[1]]); // Extract "ID-20-100e"
+      } else {
+        output.push([""]); // Keep empty if no match
+      }
+    } else {
+      output.push([""]); // Skip blank cells
+    }
+  }
+
+  if (output.length > 0) {
+    sheet.getRange(2, 10, output.length, 1).setValues(output); // Write to Column J
+  } else {
+    Logger.log("No matches found.");
+  }
+}
